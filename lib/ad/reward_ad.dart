@@ -32,6 +32,12 @@ abstract class RewardVideoAd extends TypeBase {
     if (_adCompleter != null && !_adCompleter!.isCompleted) {
       _adCompleter!.complete(result);
     }
+
+    ///如果加载展示失败嘞
+    if (!result) {
+      ///取消订阅
+      dispose();
+    }
   }
 }
 
