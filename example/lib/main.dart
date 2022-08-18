@@ -1,6 +1,15 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:together_ad/ad/reward_ad.dart';
+import 'package:together_ad/manager/together_ad.dart';
+
+import 'huawei_ad_reward.dart';
+import 'unionad_reward.dart';
 
 void main() {
+  TogetherAd.instance.register('union', ItemAd('穿山甲'));
   runApp(const MyApp());
 }
 
@@ -49,6 +58,30 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  late StreamController<RewardAdCallback> streamController;
+  late StreamSubscription adStreamSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    streamController = StreamController<RewardAdCallback>();
+    adStreamSubscription =
+        streamController.stream.listen((RewardAdCallback event) {
+      if (event.success) {
+        debugPrint('成功');
+      } else {
+        debugPrint('失败');
+      }
+    });
+    // streamController.add((event));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    adStreamSubscription.cancel();
+    streamController.close();
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -76,32 +109,29 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'You have pushed the button this many times:',
+              '测试一下',
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
+            ElevatedButton(
+                onPressed: () {
+                  TogetherAd.instance.loadRewardAd([
+                    ///比如这个广告只针对安卓,当然这个判断也可以去掉
+                    if (Platform.isAndroid)
+                      UnionadRewardVideoAd(
+                          type: 'unionad',
+                          iosCodeId: 'todo',
+                          androidCodeId: 'todo',
+                          userID: 'todo',
+                          rewardAmount: 1,
+                          rewardName: 'todo',
+                          mediaExtra: 'todo',
+                          probability: 1),
+                  ], streamController);
+                },
+                child: const Text('激励视频'))
           ],
         ),
       ),
